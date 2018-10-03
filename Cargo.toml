@@ -17,6 +17,7 @@ podio = "0.1"
 bzip2 = { version = "0.3", optional = true }
 libflate = { version = "0.1.16", optional = true }
 crc32fast = "1.0"
+xz2 = { version = "0.1", optional = true }
 
 [dev-dependencies]
 bencher = "0.1"
@@ -26,6 +27,7 @@ walkdir = "1.0"
 [features]
 deflate = ["libflate"]
 default = ["bzip2", "deflate", "time"]
+lzma = ["xz2"]
 
 [[bench]]
 name = "read_entry"

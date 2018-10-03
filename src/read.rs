@@ -19,6 +19,9 @@ use libflate;
 #[cfg(feature = "bzip2")]
 use bzip2::read::BzDecoder;
 
+#[cfg(feature = "lzma")]
+use xz2::read::XzDecoder;
+
 mod ffi {
     pub const S_IFDIR: u32 = 0o0040000;
     pub const S_IFREG: u32 = 0o0100000;
@@ -67,6 +70,8 @@ enum ZipFileReader<'a> {
     Deflated(Crc32Reader<libflate::deflate::Decoder<io::Take<&'a mut Read>>>),
     #[cfg(feature = "bzip2")]
     Bzip2(Crc32Reader<BzDecoder<io::Take<&'a mut Read>>>),
+    #[cfg(feature = "lzma")]
+    Lzma(Crc32Reader<XzDecoder<io::Take<&'a mut Read>>>),
 }
 
 /// A struct for reading a zip file
@@ -110,6 +115,14 @@ fn make_reader<'a>(
                 bzip2_reader,
                 crc32)))
         },
+        #[cfg(feature = "lzma")]
+        CompressionMethod::Lzma =>
+        {
+            let lzma_reader = XzDecoder::new(reader);
+            Ok(ZipFileReader::Lzma(Crc32Reader::new(
+                lzma_reader,
+                crc32)))
+        }
         _ => unsupported_zip_error("Compression method not supported"),
     }
 }
@@ -420,6 +433,8 @@ fn get_reader<'a>(reader: &'a mut ZipFileReader) -> &'a mut Read {
         ZipFileReader::Deflated(ref mut r) => r as &mut Read,
         #[cfg(feature = "bzip2")]
         ZipFileReader::Bzip2(ref mut r) => r as &mut Read,
+        #[cfg(feature = "lzma")]
+        ZipFileReader::Lzma(ref mut r) => r as &mut Read,
     }
 }
 
@@ -524,6 +539,8 @@ impl<'a> Drop for ZipFile<'a> {
                 ZipFileReader::Deflated(crcreader) => crcreader.into_inner().into_inner(),
                 #[cfg(feature = "bzip2")]
                 ZipFileReader::Bzip2(crcreader) => crcreader.into_inner().into_inner(),
+                #[cfg(feature = "lzma")]
+                ZipFileReader::Lzma(crcreader) => crcreader.into_inner().into_inner(),
             };
 
             loop {

@@ -17,6 +17,7 @@ Supported compression formats:
 * stored (i.e. none)
 * deflate
 * bzip2
+* lzma/xz (optional, requires rust version 1.26+)
 
 Currently unsupported zip extensions:
 

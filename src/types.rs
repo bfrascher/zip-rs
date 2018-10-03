@@ -259,6 +259,8 @@ impl ZipFileData {
         match self.compression_method {
             #[cfg(feature = "bzip2")]
             ::compression::CompressionMethod::Bzip2 => 46,
+            #[cfg(feature = "lzma")]
+            ::compression::CompressionMethod::Lzma => 63,
             _ => 20,
         }
     }

@@ -20,6 +20,9 @@ use libflate;
 use bzip2;
 #[cfg(feature = "bzip2")]
 use bzip2::write::BzEncoder;
+#[cfg(feature = "lzma")]
+use xz2::write::XzEncoder;
+
 
 enum GenericZipWriter<W: Write + io::Seek>
 {
@@ -29,6 +32,8 @@ enum GenericZipWriter<W: Write + io::Seek>
     Deflater(libflate::deflate::Encoder<W>),
     #[cfg(feature = "bzip2")]
     Bzip2(BzEncoder<W>),
+    #[cfg(feature = "lzma")]
+    Lzma(XzEncoder<W>),
 }
 
 /// Generator for ZIP files.
@@ -355,6 +360,8 @@ impl<W: Write+io::Seek> GenericZipWriter<W>
             GenericZipWriter::Deflater(w) =>  w.finish().into_result()?,
             #[cfg(feature = "bzip2")]
             GenericZipWriter::Bzip2(w) => w.finish()?,
+            #[cfg(feature = "lzma")]
+            GenericZipWriter::Lzma(w) => w.finish()?,
             GenericZipWriter::Closed => Err(io::Error::new(io::ErrorKind::BrokenPipe, "ZipWriter was already closed"))?,
         };
 
@@ -365,6 +372,8 @@ impl<W: Write+io::Seek> GenericZipWriter<W>
             CompressionMethod::Deflated => GenericZipWriter::Deflater(libflate::deflate::Encoder::new(bare)),
             #[cfg(feature = "bzip2")]
             CompressionMethod::Bzip2 => GenericZipWriter::Bzip2(BzEncoder::new(bare, bzip2::Compression::Default)),
+            #[cfg(feature = "lzma")]
+            CompressionMethod::Lzma => GenericZipWriter::Lzma(XzEncoder::new(bare, 5)),
             CompressionMethod::Unsupported(..) => return Err(ZipError::UnsupportedArchive("Unsupported compression")),
         };
 
@@ -378,6 +387,8 @@ impl<W: Write+io::Seek> GenericZipWriter<W>
             GenericZipWriter::Deflater(ref mut w) => Some(w as &mut Write),
             #[cfg(feature = "bzip2")]
             GenericZipWriter::Bzip2(ref mut w) => Some(w as &mut Write),
+            #[cfg(feature = "lzma")]
+            GenericZipWriter::Lzma(ref mut w) => Some(w as &mut Write),
             GenericZipWriter::Closed => None,
         }
     }
@@ -407,6 +418,8 @@ impl<W: Write+io::Seek> GenericZipWriter<W>
             GenericZipWriter::Deflater(..) => Some(CompressionMethod::Deflated),
             #[cfg(feature = "bzip2")]
             GenericZipWriter::Bzip2(..) => Some(CompressionMethod::Bzip2),
+            #[cfg(feature = "lzma")]
+            GenericZipWriter::Lzma(..) => Some(CompressionMethod::Lzma),
             GenericZipWriter::Closed => None,
         }
     }

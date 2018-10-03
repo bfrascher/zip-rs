@@ -14,6 +14,9 @@ pub enum CompressionMethod
     /// File is compressed using BZIP2 algorithm
     #[cfg(feature = "bzip2")]
     Bzip2,
+    /// File is compressed using LZMA algorithm
+    #[cfg(feature = "lzma")]
+    Lzma,
     /// Unsupported compression method
     Unsupported(u16),
 }
@@ -27,6 +30,8 @@ impl CompressionMethod {
             8 => CompressionMethod::Deflated,
             #[cfg(feature = "bzip2")]
             12 => CompressionMethod::Bzip2,
+            #[cfg(feature = "lzma")]
+            14 => CompressionMethod::Lzma,
             v => CompressionMethod::Unsupported(v),
         }
     }
@@ -39,6 +44,8 @@ impl CompressionMethod {
             CompressionMethod::Deflated => 8,
             #[cfg(feature = "bzip2")]
             CompressionMethod::Bzip2 => 12,
+            #[cfg(feature = "lzma")]
+            CompressionMethod::Lzma => 14,
             CompressionMethod::Unsupported(v) => v,
         }
     }
@@ -65,24 +72,16 @@ mod test {
         }
     }
 
-    #[cfg(all(not(feature = "bzip2"), feature = "deflate"))]
     fn methods() -> Vec<CompressionMethod> {
-        vec![CompressionMethod::Stored, CompressionMethod::Deflated]
-    }
+        let mut methods = vec![CompressionMethod::Stored];
+        #[cfg(feature = "bzip2")]
+        methods.push(CompressionMethod::Bzip2);
+        #[cfg(feature = "deflate")]
+        methods.push(CompressionMethod::Deflated);
+        #[cfg(feature = "lzma")]
+        methods.push(CompressionMethod::Lzma);
 
-    #[cfg(all(not(feature = "deflate"), feature = "bzip2"))]
-    fn methods() -> Vec<CompressionMethod> {
-        vec![CompressionMethod::Stored, CompressionMethod::Bzip2]
-    }
-
-    #[cfg(all(feature = "bzip2", feature = "deflate"))]
-    fn methods() -> Vec<CompressionMethod> {
-        vec![CompressionMethod::Stored, CompressionMethod::Deflated, CompressionMethod::Bzip2]
-    }
-
-    #[cfg(all(not(feature = "bzip2"), not(feature = "deflate")))]
-    fn methods() -> Vec<CompressionMethod> {
-        vec![CompressionMethod::Stored]
+        methods
     }
 
     #[test]

@@ -10,6 +10,8 @@ extern crate libflate;
 extern crate podio;
 #[cfg(feature = "time")]
 extern crate time;
+#[cfg(feature = "lzma")]
+extern crate xz2;
 
 pub use read::ZipArchive;
 pub use write::ZipWriter;
