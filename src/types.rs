@@ -1,6 +1,5 @@
 //! Types that specify what is contained in a ZIP.
-
-use time;
+use chrono::NaiveDateTime;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum System
@@ -40,7 +39,7 @@ pub struct ZipFileData
     /// Compression method used to store the file
     pub compression_method: ::compression::CompressionMethod,
     /// Last modified time. This will only have a 2 second precision.
-    pub last_modified_time: time::Tm,
+    pub last_modified_time: NaiveDateTime,
     /// CRC32 checksum
     pub crc32: u32,
     /// Size of the file in the ZIP
@@ -120,7 +119,7 @@ mod test {
             version_made_by: 0,
             encrypted: false,
             compression_method: ::compression::CompressionMethod::Stored,
-            last_modified_time: time::empty_tm(),
+            last_modified_time: NaiveDateTime::from_timestamp(0, 0),
             crc32: 0,
             compressed_size: 0,
             uncompressed_size: 0,

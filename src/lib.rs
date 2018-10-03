@@ -4,11 +4,10 @@
 
 #[cfg(feature = "bzip2")]
 extern crate bzip2;
+extern crate chrono;
 #[cfg(feature = "flate2")]
 extern crate flate2;
-extern crate msdos_time;
 extern crate podio;
-extern crate time;
 
 pub use read::ZipArchive;
 pub use write::ZipWriter;
